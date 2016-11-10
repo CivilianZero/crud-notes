@@ -8,10 +8,15 @@ var IndexRoute = ReactRouter.IndexRoute;
 var hashHistory = ReactRouter.hashHistory;
 
 var App = require('./components/App.jsx');
+var Animals = require('./components/Animals.jsx');
+var Animal = require('./components/Animal.jsx');
 
 var jsx = (
 	<Router history={hashHistory}>
-		<Route path="/" component={App}></Route>
+		<Route path="/" component={App}>
+            <Route path="animals" component={Animals} />
+            <Route path="animals/:id" component={Animal} />
+        </Route>
 	</Router>
 );
 

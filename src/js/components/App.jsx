@@ -1,18 +1,13 @@
 var React = require('react');
 
-var Link = require('react-router').Link;
-
-function getActiveClass (path) {
-	var current = window.location.hash.slice(1);
-	return current === path ? 'active' : '';
-}
+var Navigation = require('./Navigation.jsx');
 
 var App = React.createClass({
 	render: function () {
 		return (
-			<div>
+			<div className="App">
 				<header>
-					<Link to="/" className={ getActiveClass('/') }>Home</Link>
+					<Navigation />
 				</header>
 				<main>
 					<h1>App</h1>
