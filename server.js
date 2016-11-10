@@ -1,6 +1,9 @@
+var lowdb = require('lowdb');
+var shortid = require('shortid');
 var express = require('express');
 var bodyParser = require('body-parser');
 
+var db = lowdb('db.json', { storage: require('lowdb/lib/file-async') });
 var app = express();
 var port = 3000;
 
@@ -11,10 +14,10 @@ app.use(express.static(__dirname + '/dist'));
 app.use(express.static(__dirname + '/lib'));
 app.use(express.static(__dirname + '/src/css'));
 
-var database = {
-    animalsId: 1,
+
+db.defaults({
     animals: []
-};
+}).value();
 
 // Create
 
@@ -24,11 +27,11 @@ app.post('/api/animals', function (req, res) {
 
     if (name && species) {
         let animal = {
-            id: database.animalsId++,
+            id: shortid(),
             name: name,
             species: species
         };
-        database.animals.push(animal);
+        db.get('animals').push(animal).value();
         res.json(animal);
         return;
     }
@@ -40,14 +43,12 @@ app.post('/api/animals', function (req, res) {
 // Read
 
 app.get('/api/animals', function (req, res) {
-    res.json(database.animals);
+    res.json(db.get('animals').value());
 });
 
 app.get('/api/animals/:id', function (req, res) {
-    var id = Number(req.params.id);
-    var animal = database.animals.find(function (a) {
-        return a.id === id;
-    });
+    var id = req.params.id;
+    var animal = db.get('animals').find({ id: id }).value();
     if (animal) {
         res.json(animal);
         return;
@@ -57,7 +58,34 @@ app.get('/api/animals/:id', function (req, res) {
 });
 
 // Update
+app.put('/api/animals/:id', function (req, res) {
+    var id = req.params.id;
+    var animal = db.get('animals').find({ id: id });
+    var name = req.body.name;
+    var species = req.body.species;
+    if (animal.value()) {
+        animal = animal.assign({
+            name: name,
+            species: species
+        }).value();
+        res.json(animal);
+        return
+    }
+    res.status(404);
+    res.json({error: 'Animal with that ID not found.'});
+});
 
 // Delete
+app.delete('/api/animals/:id', function (req, res) {
+    var id = req.params.id;
+    var animal = db.get('animals').find({ id: id });
+    if (animal.value()) {
+        db.get('animals').remove({ id: id }).value();
+        res.sendStatus(200);
+        return;
+    }
+    res.status(404);
+    res.json({error: 'Animal with that ID not found.'});
+});
 
 app.listen(port);

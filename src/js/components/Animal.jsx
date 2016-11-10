@@ -1,12 +1,14 @@
 var React = require('react');
 
+var hashHistory = require('react-router').hashHistory;
+
 var Animal = require('./Animal.jsx');
 var animalStore = require('../stores/animalStore');
 
 var Animals = React.createClass({
 
     getInitialState: function () {
-        var animalId = Number(this.props.params.id);
+        var animalId = this.props.params.id;
         return {
             animalId: animalId,
             animal: animalStore.fetch(animalId),
@@ -101,11 +103,15 @@ var Animals = React.createClass({
     },
 
     handleSaveClick: function () {
-
+        this.setState({
+            editing: false
+        });
+        animalStore.edit(this.state.animal.id, this.state.editingNameValue, this.state.editingSpeciesValue);
     },
 
     handleDeleteClick: function () {
-
+        hashHistory.push('/animals');
+        animalStore.delete(this.state.animal.id);
     }
 
 });

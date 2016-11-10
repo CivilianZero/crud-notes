@@ -29,11 +29,15 @@ function fetch (id) {
                 var existing = findById(response.id);
                 if (!existing) {
                     animals.push(response);
+                } else {
+                    // Will splice the existing object and insert the new one
+                    // from the server.
+                    animals.splice(animals.indexOf(existing), 1, response);
                 }
                 store.emit('update');
             }
         });
-        return null;
+        return findById(id);
     } else {
         $.ajax({
             url: resourceRoot,
@@ -64,11 +68,35 @@ function add (name, species) {
 }
 
 function del (id) {
-
+    var animal = findById(id);
+    if (animal) {
+        $.ajax({
+            url: resourceRoot + id,
+            method: 'DELETE',
+            success: function() {
+                animals.splice(animals.indexOf(animal), 1);
+                store.emit('update');
+            }
+        });
+    }
 }
 
 function edit (id, name, species) {
-
+    var animal = findById(id);
+    if (animal) {
+        $.ajax({
+            url: resourceRoot + id,
+            method: 'PUT',
+            data: {
+                name: name,
+                species: species
+            },
+            success: function(response) {
+                animals.splice(animals.indexOf(animal), 1, response);
+                store.emit('update');
+            }
+        });
+    }
 }
 
 store.fetch = fetch;

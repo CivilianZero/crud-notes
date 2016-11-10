@@ -26526,6 +26526,8 @@
 
 	var React = __webpack_require__(1);
 
+	var hashHistory = __webpack_require__(172).hashHistory;
+
 	var Animal = __webpack_require__(230);
 	var animalStore = __webpack_require__(231);
 
@@ -26534,7 +26536,7 @@
 
 
 	    getInitialState: function () {
-	        var animalId = Number(this.props.params.id);
+	        var animalId = this.props.params.id;
 	        return {
 	            animalId: animalId,
 	            animal: animalStore.fetch(animalId),
@@ -26676,9 +26678,17 @@
 	        });
 	    },
 
-	    handleSaveClick: function () {},
+	    handleSaveClick: function () {
+	        this.setState({
+	            editing: false
+	        });
+	        animalStore.edit(this.state.animal.id, this.state.editingNameValue, this.state.editingSpeciesValue);
+	    },
 
-	    handleDeleteClick: function () {}
+	    handleDeleteClick: function () {
+	        hashHistory.push('/animals');
+	        animalStore.delete(this.state.animal.id);
+	    }
 
 	});
 
@@ -26719,11 +26729,15 @@
 	                var existing = findById(response.id);
 	                if (!existing) {
 	                    animals.push(response);
+	                } else {
+	                    // Will splice the existing object and insert the new one
+	                    // from the server.
+	                    animals.splice(animals.indexOf(existing), 1, response);
 	                }
 	                store.emit('update');
 	            }
 	        });
-	        return null;
+	        return findById(id);
 	    } else {
 	        $.ajax({
 	            url: resourceRoot,
@@ -26753,9 +26767,37 @@
 	    }
 	}
 
-	function del(id) {}
+	function del(id) {
+	    var animal = findById(id);
+	    if (animal) {
+	        $.ajax({
+	            url: resourceRoot + id,
+	            method: 'DELETE',
+	            success: function () {
+	                animals.splice(animals.indexOf(animal), 1);
+	                store.emit('update');
+	            }
+	        });
+	    }
+	}
 
-	function edit(id, name, species) {}
+	function edit(id, name, species) {
+	    var animal = findById(id);
+	    if (animal) {
+	        $.ajax({
+	            url: resourceRoot + id,
+	            method: 'PUT',
+	            data: {
+	                name: name,
+	                species: species
+	            },
+	            success: function (response) {
+	                animals.splice(animals.indexOf(animal), 1, response);
+	                store.emit('update');
+	            }
+	        });
+	    }
+	}
 
 	store.fetch = fetch;
 	store.add = add;
